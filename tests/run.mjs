@@ -167,6 +167,27 @@ test("dice off cancels future turns but lets a current play finish; dice on rejo
   assert.equal(s("bell").playCount, 2);
 });
 
+test("changing the frequency during a wait redraws the wait from the new range", async () => {
+  const {playlist, s} = world({sounds: [{_id: "bell", flags: {[MODULE_ID]: {randomize: true, frequency: "seldom"}}}]});
+  await playlist.playAll();                  // Seldom wait: 240 s
+  clock.advance(10 * SEC);
+  await s("bell").setFlag(MODULE_ID, "frequency", "often");
+  clock.advance(20 * SEC);                   // Often wait: 20 s from the change
+  assert.equal(s("bell").playing, true);
+  assert.equal(s("bell").playCount, 1);
+});
+
+test("changing the frequency mid-play leaves the next wait to start at its end", async () => {
+  const {playlist, s} = world({sounds: [{_id: "bell", duration: 10 * SEC, flags: {[MODULE_ID]: {randomize: true}}}]});
+  await playlist.playAll();
+  clock.advance(80 * SEC);                   // playing since 75 s
+  await s("bell").setFlag(MODULE_ID, "frequency", "often");
+  assert.equal(scheduler.timers.size, 0, "no turn queued while it plays");
+  clock.advance(5 * SEC);                    // ends at 85 s
+  clock.advance(20 * SEC);
+  assert.equal(s("bell").playCount, 2);
+});
+
 test("dice-off sounds stay silent on Play All", async () => {
   const {playlist, s} = world({sounds: [{_id: "bell", flags: {[MODULE_ID]: {randomize: true, enabled: false}}}]});
   await playlist.playAll();

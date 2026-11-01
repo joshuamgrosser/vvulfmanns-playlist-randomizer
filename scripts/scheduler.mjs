@@ -114,8 +114,11 @@ export class Scheduler {
     if ( !this.active || !sound ) return;
     if ( !isArmed(sound.parent) || !isEligible(sound) ) return this.cancel(sound.uuid);
     if ( change.playing === true ) return this.cancel(sound.uuid); // Played by hand or by us: the gap restarts at its end.
-    const flagsChanged = touches(change, "randomize") || touches(change, "enabled");
-    if ( ((change.playing === false) || flagsChanged) && !sound.playing ) this.schedule(sound);
+    if ( sound.playing ) return;
+    // A new frequency replaces a wait drawn from the old one, so switching Seldom to Often takes effect now.
+    if ( touches(change, "frequency") ) this.cancel(sound.uuid);
+    const flagsChanged = touches(change, "randomize") || touches(change, "enabled") || touches(change, "frequency");
+    if ( (change.playing === false) || flagsChanged ) this.schedule(sound);
   }
 
   /** updatePlaylist hook. */

@@ -1,0 +1,52 @@
+name: Release
+
+# Push a tag like v0.1.0 to build and publish a release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tests
+        run: npm test
+
+      - name: Stamp version and download URL into module.json
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          DOWNLOAD="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/module.zip"
+          jq --arg v "$VERSION" --arg d "$DOWNLOAD" '.version = $v | .download = $d' module.json > module.tmp && mv module.tmp module.json
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Build module.zip
+        run: zip -r module.zip module.json scripts languages LICENSE README.md
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            module.json
+            module.zip
+          generate_release_notes: true
+
+      # Optional: push the new version to the Foundry package listing.
+      # Add the package's release token (from foundryvtt.com) as the repository secret FOUNDRY_RELEASE_TOKEN.
+      - name: Publish to Foundry package listing
+        env:
+          FOUNDRY_RELEASE_TOKEN: ${{ secrets.FOUNDRY_RELEASE_TOKEN }}
+        if: env.FOUNDRY_RELEASE_TOKEN != ''
+        run: |
+          MANIFEST="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/module.json"
+          jq -n --arg id "$(jq -r .id module.json)" --arg v "$VERSION" --arg m "$MANIFEST" \
+            --arg n "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}" \
+            --argjson c "$(jq .compatibility module.json)" \
+            '{id: $id, release: {version: $v, manifest: $m, notes: $n, compatibility: $c}}' > payload.json
+          curl --fail-with-body -X POST https://api.foundryvtt.com/_api/packages/release_version/ \
+            -H "Content-Type: application/json" -H "Authorization: $FOUNDRY_RELEASE_TOKEN" \
+            --data @payload.json

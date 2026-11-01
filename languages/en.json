@@ -1,0 +1,17 @@
+{
+  "VPR": {
+    "Randomize": {
+      "Label": "Randomize",
+      "Hint": "Wait a random time between repeats instead of looping nonstop.",
+      "On": "Randomize: On",
+      "Off": "Randomize: Off"
+    },
+    "Frequency": {
+      "Label": "Frequency",
+      "Hint": "How long to wait between plays.",
+      "often": "Often",
+      "sometimes": "Sometimes",
+      "seldom": "Seldom"
+    }
+  }
+}

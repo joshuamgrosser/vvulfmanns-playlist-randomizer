@@ -1,0 +1,8 @@
+{
+  "name": "vvulfmanns-playlist-randomizer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --check scripts/main.js && node tests/logic.test.mjs"
+  }
+}

@@ -22,12 +22,15 @@ export const RandomizerDirectory = Base => class RandomizerDirectory extends Bas
     }
   };
 
-  /** @inheritDoc */
-  async _onRender(context, options) {
-    // Decorate before awaiting core, so the rows never paint for a frame without the dice.
+  /**
+   * Decorate the rows and fill the timers in the same task that puts the new HTML on the page, so a row never
+   * paints for a frame without its dice or with a blank timer (core only fills timers on its one-second tick).
+   * @inheritDoc
+   */
+  _replaceHTML(result, content, options) {
+    super._replaceHTML(result, content, options);
     decorateSounds(this.element);
-    resetRestingTimers(this.element);
-    await super._onRender(context, options);
+    this.updateTimestamps();
   }
 
   /**

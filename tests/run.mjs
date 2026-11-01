@@ -480,8 +480,8 @@ test("sidebar: a dice sits beside every repeat button, lit only on randomized so
   const root = new El("section", {children: [...ids.map(id => row(id)), row("bell", {owner: false})]});
   const app = new CONFIG.ui.playlists();
   app.element = root;
-  await app._onRender({}, {});
-  assert.ok(app.baseRendered, "core render ran");
+  app._replaceHTML({}, root, {});
+  assert.ok(app.htmlReplaced, "core render ran");
   const rows = root.querySelectorAll(".sound[data-sound-id]");
   const controls = li => li.querySelector(".sound-controls").children;
   const dice = li => li.querySelector('[data-action="soundRandomize"]');
@@ -508,12 +508,14 @@ test("sidebar: a dice sits beside every repeat button, lit only on randomized so
   const playing = new El("section", {children: [timerRow("bell"), timerRow("loop")]});
   root.append(playing);
   playing.children[1].querySelector(".current").textContent = "0:07";
-  await app._onRender({}, {});
+  app._replaceHTML({}, root, {});
+  assert.equal(playing.children[0].querySelector(".duration").textContent, "0:13", "timer filled on render, not a tick later");
+  assert.equal(playing.children[0].querySelector(".current").textContent, "0:00");
   app.updateTimestamps();
   assert.equal(playing.children[0].querySelector(".current").textContent, "0:00", "resting: 0:00");
   assert.equal(playing.children[1].querySelector(".current").textContent, "∞", "others left to core");
   // A second render doesn't add a second dice
-  await app._onRender({}, {});
+  app._replaceHTML({}, root, {});
   assert.equal(rows[1].querySelectorAll('[data-action="soundRandomize"]').length, 1);
   // Clicking the dice toggles Randomize; Repeat goes off
   const click = li => CONFIG.ui.playlists.DEFAULT_OPTIONS.actions.soundRandomize.call(app, {}, dice(li));

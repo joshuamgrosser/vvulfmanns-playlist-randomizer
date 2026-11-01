@@ -376,9 +376,11 @@ export class PlaylistDirectory {
   static DEFAULT_OPTIONS = {actions: {soundRepeat() {}, soundPlay() {}, soundStop() {}, soundPause() {}}};
   constructor() { this.element = null; }
   async _onRender() { this.baseRendered = true; }
+  _replaceHTML() { this.htmlReplaced = true; }
   /** Core rewrites each Currently Playing timer from the audio's current time: "∞" when not sounding. */
   updateTimestamps() {
     for ( const el of this.element.querySelectorAll(".current") ) el.textContent = "∞";
+    for ( const el of this.element.querySelectorAll(".duration") ) el.textContent = "0:13";
   }
 }
 

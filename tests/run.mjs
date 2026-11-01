@@ -484,6 +484,17 @@ test("sidebar: a dice sits beside every repeat button, lit only on randomized so
   assert.ok(rows[1].querySelector('[data-action="soundPause"]').hasAttribute("disabled"));
   assert.ok(rows[4].classList.has("vpr-resting"), "players see the dimmed row too");
   assert.equal(rows[0].classList.has("vpr-resting"), false);
+  // A waiting sound's timer reads 0:00 rather than core's "∞", on render and on core's per-second update
+  const timerRow = id => new El("li", {classes: ["sound"], dataset: {playlistId: "pl1", soundId: id}, children: [
+    new El("div", {classes: ["sound-timer"], children: [new El("span", {classes: ["current"]}), new El("span", {classes: ["duration"]})]})
+  ]});
+  const playing = new El("section", {children: [timerRow("bell"), timerRow("loop")]});
+  root.append(playing);
+  playing.children[1].querySelector(".current").textContent = "0:07";
+  await app._onRender({}, {});
+  app.updateTimestamps();
+  assert.equal(playing.children[0].querySelector(".current").textContent, "0:00", "resting: 0:00");
+  assert.equal(playing.children[1].querySelector(".current").textContent, "∞", "others left to core");
   // A second render doesn't add a second dice
   await app._onRender({}, {});
   assert.equal(rows[1].querySelectorAll('[data-action="soundRandomize"]').length, 1);

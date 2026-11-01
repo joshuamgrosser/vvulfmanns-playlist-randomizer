@@ -371,6 +371,10 @@ export class PlaylistDirectory {
   static DEFAULT_OPTIONS = {actions: {soundRepeat() {}, soundPlay() {}, soundStop() {}, soundPause() {}}};
   constructor() { this.element = null; }
   async _onRender() { this.baseRendered = true; }
+  /** Core rewrites each Currently Playing timer from the audio's current time: "∞" when not sounding. */
+  updateTimestamps() {
+    for ( const el of this.element.querySelectorAll(".current") ) el.textContent = "∞";
+  }
 }
 
 /* ---------------------------------------- */
@@ -397,6 +401,8 @@ export class El {
     for ( const c of children ) this.append(c);
   }
   get name() { return this.attrs.name; }
+  get textContent() { return this.text ?? ""; }
+  set textContent(value) { this.text = String(value); }
   append(...els) {
     for ( const e of els ) {
       if ( typeof e === "string" ) { this.text = (this.text ?? "") + e; continue; }

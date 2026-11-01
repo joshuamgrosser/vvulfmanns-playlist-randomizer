@@ -3,9 +3,9 @@
   opacity: 0.5;
 }
 
-/* Core shows no time for a sound that isn't sounding ("∞"), so hide it during a gap. */
+/* During a gap the timer stays in place, dimmed, reading 0:00 (see RandomizerDirectory#updateTimestamps). */
 .currently-playing .sound.vpr-resting .sound-timer {
-  visibility: hidden;
+  opacity: 0.5;
 }
 
 /* Core sizes a sound's controls for two icons; make room for the dice so Play/Stop stays on the same line. */

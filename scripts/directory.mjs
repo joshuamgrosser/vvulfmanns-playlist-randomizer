@@ -26,9 +26,32 @@ export const RandomizerDirectory = Base => class RandomizerDirectory extends Bas
   async _onRender(context, options) {
     // Decorate before awaiting core, so the rows never paint for a frame without the dice.
     decorateSounds(this.element);
+    resetRestingTimers(this.element);
     await super._onRender(context, options);
   }
+
+  /**
+   * Core rewrites each Currently Playing timer every second from the audio's current time, which reads
+   * "∞" for a sound that isn't sounding. Show 0:00 for a sound waiting out a gap instead.
+   * @inheritDoc
+   */
+  updateTimestamps() {
+    super.updateTimestamps();
+    resetRestingTimers(this.element);
+  }
 };
+
+/**
+ * Set the elapsed time of every resting sound in Currently Playing to 0:00.
+ * @param {HTMLElement} element
+ */
+export function resetRestingTimers(element) {
+  for ( const li of element?.querySelectorAll(".sound") ?? [] ) {
+    if ( !li.classList.contains("vpr-resting") ) continue;
+    const current = li.querySelector(".current");
+    if ( current ) current.textContent = "0:00";
+  }
+}
 
 /**
  * Add the dice to each sound row and mark resting rows.

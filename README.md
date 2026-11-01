@@ -45,7 +45,7 @@ A sound keeps its Frequency when you switch Randomize off, so switching it back 
 | Reload mid-session | Running sounds carry on, each drawing a fresh gap. |
 
 - Each gap counts from when the sound finishes, so a sound never overlaps itself.
-- While a sound waits, its sidebar row is dimmed, its time is hidden and Pause is disabled. Its
+- While a sound waits, its sidebar row is dimmed, its timer is dimmed and reads 0:00, and Pause is disabled. Its
   volume slider stays in Currently Playing so you can adjust it between plays.
 - Only the active GM's browser keeps time, so plays never double up. With no GM connected, waiting
   sounds stay silent. Players hear everything through Foundry's normal sound sync.

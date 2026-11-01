@@ -24,8 +24,9 @@ export const RandomizerDirectory = Base => class RandomizerDirectory extends Bas
 
   /** @inheritDoc */
   async _onRender(context, options) {
-    await super._onRender(context, options);
+    // Decorate before awaiting core, so the rows never paint for a frame without the dice.
     decorateSounds(this.element);
+    await super._onRender(context, options);
   }
 };
 

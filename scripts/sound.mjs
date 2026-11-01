@@ -18,8 +18,11 @@ export const RandomizerSound = Base => class RandomizerSound extends Base {
     // syncs every sound once audio unlocks (Playlists#initialize), so there's nothing to do yet.
     if ( game.audio?.locked ) return;
     if ( !isWaiting(this) ) return super.sync();
-    // Keep a Sound object, so Currently Playing lists the sound and its volume slider between plays.
+    // Keep a loaded Sound object, so Currently Playing lists the sound, its volume slider and its length
+    // between plays, even in a browser that joined during a gap and hasn't played it yet.
     this.sound ||= this._createSound();
-    if ( this.sound?.playing ) this.sound.stop({fade: this.fadeDuration});
+    if ( !this.sound ) return;
+    if ( this.sound.playing ) this.sound.stop({fade: this.fadeDuration});
+    else if ( !this.sound.loaded && !this.sound.failed ) this.sound.load();
   }
 };

@@ -168,7 +168,10 @@ export class PlaylistSound {
     const doc = this;
     return {
       playing: false,
+      loaded: false,
+      failed: false,
       stopCount: 0,
+      load() { this.loaded = true; return Promise.resolve(this); },
       /** Stopping audio silences it without an "end" event, as in core. */
       stop() {
         this.playing = false;

@@ -368,6 +368,7 @@ test("a resting sound stays silent but keeps an audio object", async () => {
   assert.equal(bell.audible, false);
   assert.equal(bell.playCount, 0);
   assert.ok(bell.sound, "so Currently Playing can list it with a volume slider");
+  assert.equal(bell.sound.loaded, true, "and loaded, so its length shows even before its first play here");
 });
 
 test("entering a gap silences a client whose audio is still playing", async () => {

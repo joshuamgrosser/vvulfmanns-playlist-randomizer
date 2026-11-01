@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --check scripts/main.js && node tests/logic.test.mjs"
+    "test": "for f in scripts/*.js scripts/*.mjs; do node --check \"$f\" || exit 1; done && node tests/run.mjs"
   }
 }

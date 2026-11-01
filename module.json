@@ -1,10 +1,10 @@
 {
   "id": "vvulfmanns-playlist-randomizer",
   "title": "Vvulfmann's Playlist Randomizer",
-  "description": "Adds a Randomize option to looped playlist sounds. A randomized loop waits a random time between plays (Often, Sometimes or Seldom) instead of repeating nonstop.",
+  "description": "Adds a Randomize option to playlist sounds. A randomized sound is an ordinary one-shot that plays at random intervals (Often, Sometimes or Seldom) while its playlist is playing.",
   "version": "0.1.0",
   "authors": [{ "name": "Joshua Grosser", "url": "https://github.com/joshuamgrosser" }],
-  "compatibility": { "minimum": "14", "verified": "14" },
+  "compatibility": { "minimum": "14", "verified": "14.369" },
   "esmodules": ["scripts/main.js"],
   "languages": [{ "lang": "en", "name": "English", "path": "languages/en.json" }],
   "url": "https://github.com/joshuamgrosser/vvulfmanns-playlist-randomizer",

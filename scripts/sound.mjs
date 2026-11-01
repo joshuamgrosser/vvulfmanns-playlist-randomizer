@@ -14,8 +14,10 @@ export const RandomizerSound = Base => class RandomizerSound extends Base {
 
   /** @override */
   sync() {
-    if ( !isWaiting(this) ) return super.sync();
+    // Until the browser allows audio (the user's first click), core can't create sounds and would throw. Core
+    // syncs every sound once audio unlocks (Playlists#initialize), so there's nothing to do yet.
     if ( game.audio?.locked ) return;
+    if ( !isWaiting(this) ) return super.sync();
     // Keep a Sound object, so Currently Playing lists the sound and its volume slider between plays.
     this.sound ||= this._createSound();
     if ( this.sound?.playing ) this.sound.stop({fade: this.fadeDuration});

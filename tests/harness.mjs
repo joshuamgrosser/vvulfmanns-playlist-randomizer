@@ -164,6 +164,7 @@ export class PlaylistSound {
 
   /** Core creates the audio object lazily; the stand-in only records that it exists. */
   _createSound() {
+    if ( game.audio.locked ) throw new Error("You may not call PlaylistSound#_createSound until after game audio is unlocked.");
     const doc = this;
     return {
       playing: false,

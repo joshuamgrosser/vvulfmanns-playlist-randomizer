@@ -386,6 +386,21 @@ test("entering a gap silences a client whose audio is still playing", async () =
   assert.equal(raven.playCount, 2);
 });
 
+test("while browser audio is locked, gaps still end without errors, and sounds play once it unlocks", async () => {
+  const {playlist, s} = world();
+  await playlist.playAll();
+  game.audio.locked = true;
+  try {
+    clock.advance(OFTEN);   // the gap ends and the sound is set to play, on a GM whose audio isn't unlocked yet
+    assert.equal(resting(s("raven")), false);
+    assert.equal(s("raven").audible, false);
+  } finally {
+    game.audio.locked = false;
+  }
+  s("raven").sync();      // what core's Playlists#initialize does after unlock
+  assert.equal(s("raven").audible, true);
+});
+
 test("beta flags (dice enabled, playlist armed) are ignored", async () => {
   const {playlist, s} = world({flags: {[MODULE_ID]: {armed: true}}, sounds: [
     {_id: "old", flags: {[MODULE_ID]: {randomize: true, enabled: false, frequency: "often"}}}

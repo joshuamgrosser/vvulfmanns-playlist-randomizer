@@ -1,0 +1,9 @@
+/* A sound waiting out a gap between random plays: it looks idle but keeps its controls. */
+.sound.vpr-resting > header > :is(i:first-child, label) {
+  opacity: 0.5;
+}
+
+/* Core shows no time for a sound that isn't sounding ("∞"), so hide it during a gap. */
+.currently-playing .sound.vpr-resting :is(.current, .duration, .timestamp) {
+  visibility: hidden;
+}

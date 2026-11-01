@@ -34,13 +34,15 @@ jobs:
             module.json
             module.zip
           generate_release_notes: true
+          # Tags with a suffix (v0.1.0-beta.1) become pre-releases, which don't replace "latest".
+          prerelease: ${{ contains(github.ref_name, '-') }}
 
       # Optional: push the new version to the Foundry package listing.
       # Add the package's release token (from foundryvtt.com) as the repository secret FOUNDRY_RELEASE_TOKEN.
       - name: Publish to Foundry package listing
         env:
           FOUNDRY_RELEASE_TOKEN: ${{ secrets.FOUNDRY_RELEASE_TOKEN }}
-        if: env.FOUNDRY_RELEASE_TOKEN != ''
+        if: env.FOUNDRY_RELEASE_TOKEN != '' && !contains(github.ref_name, '-')
         run: |
           MANIFEST="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/module.json"
           jq -n --arg id "$(jq -r .id module.json)" --arg v "$VERSION" --arg m "$MANIFEST" \

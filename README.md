@@ -1,4 +1,4 @@
-# Vvulfmann's Playlist Randomizer
+# VVulfmann's Playlist Randomizer
 
 A small Foundry VTT v14 module that adds **Randomize** beside **Repeat** on playlist sounds.
 

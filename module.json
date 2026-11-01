@@ -1,6 +1,6 @@
 {
   "id": "vvulfmanns-playlist-randomizer",
-  "title": "Vvulfmann's Playlist Randomizer",
+  "title": "VVulfmann's Playlist Randomizer",
   "description": "Adds Randomize beside Repeat on playlist sounds: Repeat with a random silent gap (Often, Sometimes or Seldom) between plays, in every playlist mode.",
   "version": "0.1.0",
   "authors": [

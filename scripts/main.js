@@ -1,5 +1,5 @@
 /**
- * Vvulfmann's Playlist Randomizer
+ * VVulfmann's Playlist Randomizer
  * Adds Randomize beside Repeat on playlist sounds: Repeat with a random silent gap (Often, Sometimes or
  * Seldom) between plays, in every playlist mode.
  */

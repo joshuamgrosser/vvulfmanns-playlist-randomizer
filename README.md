@@ -56,7 +56,7 @@ A sound keeps its Frequency when you switch Randomize off, so switching it back 
 In Foundry's **Add-on Modules** tab, choose **Install Module** and paste this manifest URL:
 
 ```
-https://github.com/joshuamgrosser/vvulfmanns-playlist-randomizer/releases/latest/download/module.json
+https://github.com/vvulfmann/vvulfmanns-playlist-randomizer/releases/latest/download/module.json
 ```
 
 Requires Foundry VTT v14.

@@ -172,8 +172,10 @@ test("pause mid-play, then resume: the gaps carry on after that play", async () 
   assert.equal(raven.audible, false);
   assert.equal(resting(raven), false);
   await playlist.playSound(raven);
+  assert.equal(raven.pausedTime, 2, "resumes from where it paused");
   clock.advance(SOUND_LEN);
   assert.equal(resting(raven), true, "rests after the resumed play");
+  assert.equal(raven.pausedTime, null, "the next play starts from the beginning");
   clock.advance(OFTEN);
   assert.equal(raven.audible, true);
 });
@@ -325,6 +327,16 @@ test("Frequency: a change during a gap redraws it, and switching off and on keep
   await bell.setFlag(MODULE_ID, "randomize", true);
   assert.equal(config.frequencyOf(bell), "often", "kept");
   assert.equal(config.frequencyOf(s("slam")), "sometimes", "never configured: Sometimes");
+});
+
+test("a playlist update that changes mode and a frequency together still redraws that gap", async () => {
+  const {playlist, s} = world();
+  const bell = s("bell");
+  await playlist.playSound(bell);
+  clock.advance(SOUND_LEN);
+  await playlist.update({mode: MODES.DISABLED, sounds: [{_id: "bell", flags: {[MODULE_ID]: {frequency: "often"}}}]});
+  clock.advance(OFTEN);
+  assert.equal(bell.playCount, 2, "gap redrawn from Often, not left on Sometimes");
 });
 
 /* ---------------------------------------- */

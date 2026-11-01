@@ -130,8 +130,9 @@ export class Scheduler {
   /** updatePlaylist hook: check each sound the update touched, or all of them if the mode changed. */
   onUpdatePlaylist(playlist, changed) {
     if ( !this.active ) return;
-    if ( "mode" in changed ) return this.checkPlaylist(playlist);
-    for ( const change of changed.sounds ?? [] ) this.check(playlist.sounds.get(change._id), change);
+    const changes = new Map((changed.sounds ?? []).map(c => [c._id, c]));
+    const sounds = ("mode" in changed) ? playlist.sounds : [...changes.keys()].map(id => playlist.sounds.get(id));
+    for ( const sound of sounds ) this.check(sound, changes.get(sound?.id));
   }
 
   /** Register the hooks this service listens to. */

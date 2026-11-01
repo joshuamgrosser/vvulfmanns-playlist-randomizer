@@ -15,8 +15,9 @@ export const RandomizerPlaylist = Base => class RandomizerPlaylist extends Base 
   /** @inheritDoc */
   async _onSoundEnd(sound) {
     if ( !sound.playing || !isRandomized(sound) ) return super._onSoundEnd(sound);
-    // Every owner's client reports the end, so this may arrive more than once. Setting the flag is idempotent.
-    return this.update({sounds: [{_id: sound.id, [flagPath("resting")]: true}]});
+    // Every owner's client reports the end, so this may arrive more than once. The update is idempotent.
+    // Clear any resume offset left by a pause, as core does on a natural end, so the next play starts from 0.
+    return this.update({sounds: [{_id: sound.id, pausedTime: null, [flagPath("resting")]: true}]});
   }
 
   /**

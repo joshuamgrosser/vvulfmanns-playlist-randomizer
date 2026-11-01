@@ -182,6 +182,15 @@ test("ticking Randomize on a sound in an armed playlist joins the rotation", asy
   assert.ok(scheduler.timers.has(s("slam").uuid));
 });
 
+test("a randomized sound created in an armed playlist gets its first turn", async () => {
+  const {playlist} = world();
+  await playlist.playAll();
+  const created = new (playlist.sounds.get("bell").constructor)({_id: "owl", flags: {[MODULE_ID]: {randomize: true}}}, playlist);
+  playlist.sounds.set("owl", created);
+  Hooks.callAll("createPlaylistSound", created, {}, "user");   // payload uses a literal dotted key
+  assert.ok(scheduler.timers.has(created.uuid));
+});
+
 test("Sequential and Shuffle playlists keep core behaviour", async () => {
   for ( const mode of [MODES.SEQUENTIAL, MODES.SHUFFLE, MODES.DISABLED] ) {
     const {playlist} = world({mode});
@@ -267,38 +276,64 @@ test("sidebar: the repeat button becomes the dice on randomized sounds only", as
   assert.equal(s("bell").getFlag(MODULE_ID, "enabled"), false);
 });
 
-test("sound window: rows appear under Repeat in Simultaneous playlists and stay exclusive", () => {
+test("sound window: Once / Repeat / Randomize radios replace Repeat in Simultaneous playlists", () => {
   const {playlist, s} = world();
-  const repeat = new El("input", {attrs: {type: "checkbox", name: "repeat", checked: false}});
-  const form = new El("form", {children: [
-    new El("div", {classes: ["form-group"], children: [new El("label"), new El("div", {children: [repeat]})]}),
-    new El("div", {classes: ["form-group"], dataset: {fade: "1"}})
-  ]});
-  Hooks.callAll("renderPlaylistSoundConfig", {id: "cfg", document: s("bell")}, form);
+  const build = () => {
+    const repeat = new El("input", {attrs: {type: "checkbox", name: "repeat", checked: false}});
+    const form = new El("form", {children: [
+      new El("div", {classes: ["form-group"], children: [new El("label"), new El("div", {children: [repeat]})]}),
+      new El("div", {classes: ["form-group"], dataset: {fade: "1"}})
+    ]});
+    return {form, repeat};
+  };
+  const {form, repeat} = build();
+  const render = (doc, f) => Hooks.callAll("renderPlaylistSoundConfig", {id: "cfg", document: doc}, f);
+  render(s("bell"), form);
   const groups = form.children;
   assert.equal(groups.length, 4);
-  assert.equal(groups[1].label, "VPR.Randomize.Label");
+  assert.equal(groups[0].hidden, true, "core Repeat row hidden");
+  assert.equal(groups[1].label, "VPR.Playback.Label");
   assert.equal(groups[2].label, "VPR.Frequency.Label");
   assert.equal(groups[3].dataset.fade, "1", "inserted directly after Repeat");
+  const radios = groups[1].querySelectorAll('[type="radio"]');
+  assert.deepEqual(radios.map(r => r.getAttribute("value")), ["once", "repeat", "randomize"]);
+  assert.ok(radios.every(r => r.getAttribute("form") && (r.getAttribute("name") === radios[0].getAttribute("name"))),
+    "one radio group, never submitted");
+  const pick = value => { for ( const r of radios ) r.checked = (r.getAttribute("value") === value); radios.find(r => r.checked).dispatch("change"); };
   const randomize = form.querySelector(`[name="flags.${MODULE_ID}.randomize"]`);
   const frequency = form.querySelector(`[name="flags.${MODULE_ID}.frequency"]`);
+  assert.equal(radios.find(r => r.checked).getAttribute("value"), "randomize");
   assert.equal(randomize.checked, true);
+  assert.equal(randomize.hidden, true);
   assert.equal(frequency.value, "sometimes");
   assert.equal(groups[2].hidden, false);
-  repeat.checked = true; repeat.dispatch("change");
+  pick("repeat");
+  assert.equal(repeat.checked, true);
   assert.equal(randomize.checked, false);
   assert.equal(groups[2].hidden, true);
-  randomize.checked = true; randomize.dispatch("change");
+  pick("once");
   assert.equal(repeat.checked, false);
+  assert.equal(randomize.checked, false);
+  pick("randomize");
+  assert.equal(repeat.checked, false);
+  assert.equal(randomize.checked, true);
   assert.equal(groups[2].hidden, false);
   // A re-render of the same form doesn't add the rows twice
-  Hooks.callAll("renderPlaylistSoundConfig", {id: "cfg", document: s("bell")}, form);
+  render(s("bell"), form);
   assert.equal(form.children.length, 4);
-  // Not shown in other playlist modes
+  // A loop opens on Repeat with Frequency hidden
+  const loopForm = build();
+  loopForm.repeat.checked = true;
+  render(s("loop"), loopForm.form);
+  const loopRadios = loopForm.form.children[1].querySelectorAll('[type="radio"]');
+  assert.equal(loopRadios.find(r => r.checked).getAttribute("value"), "repeat");
+  assert.equal(loopForm.form.children[2].hidden, true);
+  // Other playlist modes keep core's Repeat checkbox untouched
   playlist.mode = MODES.SEQUENTIAL;
-  const form2 = new El("form", {children: [new El("div", {classes: ["form-group"], children: [new El("input", {attrs: {name: "repeat"}})]})]});
-  Hooks.callAll("renderPlaylistSoundConfig", {id: "cfg2", document: s("bell")}, form2);
-  assert.equal(form2.children.length, 1);
+  const seq = build();
+  render(s("bell"), seq.form);
+  assert.equal(seq.form.children.length, 2);
+  assert.equal(seq.form.children[0].hidden, false);
 });
 
 /* ---------------------------------------- */

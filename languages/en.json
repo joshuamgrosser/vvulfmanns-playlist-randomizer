@@ -1,7 +1,12 @@
 {
   "VPR": {
+    "Playback": {
+      "Label": "Playback",
+      "once": "Once",
+      "repeat": "Repeat",
+      "randomize": "Randomize"
+    },
     "Randomize": {
-      "Label": "Randomize",
       "On": "Randomize: On",
       "Off": "Randomize: Off"
     },

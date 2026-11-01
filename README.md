@@ -10,7 +10,8 @@ its button shows Stop like any other sound, and between plays it sits idle.
 ## How to use it
 
 1. Open a sound's edit window from a playlist set to **Simultaneous**.
-2. Tick **Randomize**. (Repeat and Randomize are mutually exclusive, so ticking one unticks the other.)
+2. Set **Playback** to **Randomize**. (In Simultaneous playlists, core's Repeat checkbox becomes a
+   Playback row with three choices: Once, Repeat or Randomize.)
 3. Pick a **Frequency**:
 
    | Frequency | Wait between plays |
@@ -61,7 +62,9 @@ The module extends core classes the way v14 expects, with no patching and no lib
   that arm and disarm the playlist (a `flags.vvulfmanns-playlist-randomizer.armed` flag).
 - `CONFIG.ui.playlists` gets one extra action, `randomizeToggle`, and swaps the repeat button for
   the dice on randomized sounds.
-- A `renderPlaylistSoundConfig` hook adds the Randomize and Frequency rows using core's form helpers.
+- A `renderPlaylistSoundConfig` hook swaps the Repeat checkbox for a Playback row (Once, Repeat,
+  Randomize radio buttons) and adds the Frequency row, using core's form helpers. The radios drive
+  core's own `repeat` field and the module's `randomize` flag, which the sheet submits as usual.
 - An active-GM scheduler plays each turn with `Playlist#playSound`.
 
 Sound settings live in the sound's flags: `randomize`, `frequency` and `enabled` (the dice).

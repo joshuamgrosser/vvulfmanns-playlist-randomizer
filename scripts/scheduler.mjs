@@ -19,9 +19,10 @@ export class Scheduler {
    * @param {Function} [options.clearTimeout]
    * @param {() => number} [options.random]
    */
-  constructor({setTimeout=globalThis.setTimeout, clearTimeout=globalThis.clearTimeout, random=Math.random}={}) {
-    this.#setTimeout = setTimeout;
-    this.#clearTimeout = clearTimeout;
+  constructor({setTimeout, clearTimeout, random=Math.random}={}) {
+    // Wrap the browser timers so they're never called with a Scheduler as `this` ("Illegal invocation").
+    this.#setTimeout = setTimeout ?? ((fn, ms) => globalThis.setTimeout(fn, ms));
+    this.#clearTimeout = clearTimeout ?? (handle => globalThis.clearTimeout(handle));
     this.#random = random;
   }
 

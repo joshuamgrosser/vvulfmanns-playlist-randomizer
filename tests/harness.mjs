@@ -12,12 +12,15 @@ export const clock = {
   now: 0,
   nextId: 1,
   queue: new Map(),
+  // Like a browser's, these throw when called with a receiver other than the global object.
   setTimeout(fn, ms=0) {
+    if ( (this !== undefined) && (this !== globalThis) && (this !== clock) ) throw new TypeError("Illegal invocation");
     const id = clock.nextId++;
     clock.queue.set(id, {at: clock.now + ms, fn});
     return id;
   },
   clearTimeout(id) {
+    if ( (this !== undefined) && (this !== globalThis) && (this !== clock) ) throw new TypeError("Illegal invocation");
     clock.queue.delete(id);
   },
   /** Advance time, running due callbacks in order. */
@@ -315,7 +318,13 @@ export class El {
     for ( const c of children ) this.append(c);
   }
   get name() { return this.attrs.name; }
-  append(...els) { for ( const e of els ) { e.parent = this; this.children.push(e); } }
+  append(...els) {
+    for ( const e of els ) {
+      if ( typeof e === "string" ) { this.text = (this.text ?? "") + e; continue; }
+      e.parent = this;
+      this.children.push(e);
+    }
+  }
   after(...els) {
     const siblings = this.parent.children;
     siblings.splice(siblings.indexOf(this) + 1, 0, ...els);
@@ -356,7 +365,7 @@ const fields = {
     return el;
   },
   createFormGroup: ({label, input, hidden}) => {
-    const group = new El("div", {classes: ["form-group"], children: [new El("label"), new El("div", {classes: ["form-fields"], children: [input]})]});
+    const group = new El("div", {classes: ["form-group"], children: [new El("label"), new El("div", {classes: ["form-fields"], children: [input].flat()})]});
     group.label = label;
     group.hidden = hidden ?? false;
     return group;
@@ -374,6 +383,7 @@ export function installGlobals() {
   globalThis.CONST = {PLAYLIST_MODES: MODES};
   globalThis.foundry = {utils: {getProperty, hasProperty, setProperty, expandObject}, applications: {fields}};
   globalThis.Hooks = Hooks;
+  globalThis.document = {createElement: tag => new El(tag)};
   globalThis.CONFIG = {Playlist: {documentClass: Playlist}, ui: {playlists: PlaylistDirectory}};
   const playlists = new Collection();
   globalThis.game = {

@@ -1,0 +1,20 @@
+{
+  "VPR": {
+    "Playback": {
+      "Label": "Playback",
+      "once": "Once",
+      "repeat": "Repeat",
+      "randomize": "Randomize"
+    },
+    "Randomize": {
+      "On": "Randomize: On",
+      "Off": "Randomize: Off"
+    },
+    "Frequency": {
+      "Label": "Frequency",
+      "often": "Often",
+      "sometimes": "Sometimes",
+      "seldom": "Seldom"
+    }
+  }
+}

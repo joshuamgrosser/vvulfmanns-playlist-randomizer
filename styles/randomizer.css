@@ -1,0 +1,16 @@
+/* A sound waiting out a gap between random plays: it looks idle but keeps its controls. */
+.sound.vpr-resting > header > :is(i:first-child, label) {
+  opacity: 0.5;
+}
+
+/* During a gap the timer stays in place, dimmed, reading 0:00 (see RandomizerDirectory#updateTimestamps). */
+.currently-playing .sound.vpr-resting .sound-timer {
+  opacity: 0.5;
+}
+
+/* Core sizes a sound's controls for two icons; make room for the dice so Play/Stop stays on the same line. */
+.sound .sound-controls:has(> [data-action="soundRandomize"]) {
+  flex: 0 0 auto;
+  width: auto;
+  flex-wrap: nowrap;
+}

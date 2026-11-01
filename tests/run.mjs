@@ -381,6 +381,7 @@ test("entering a gap silences a client whose audio is still playing", async () =
   assert.equal(resting(raven), true);
   assert.equal(raven.sound.playing, false, "stopped");
   assert.equal(raven.sound.stopCount, 1);
+  assert.equal(raven.sound.lastStopOptions, undefined, "stopped at once, with no fade left pending");
   assert.equal(raven.audible, false);
   clock.advance(OFTEN);
   assert.equal(raven.audible, true, "plays again after the gap");

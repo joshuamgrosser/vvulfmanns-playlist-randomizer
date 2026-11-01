@@ -173,7 +173,8 @@ export class PlaylistSound {
       stopCount: 0,
       load() { this.loaded = true; return Promise.resolve(this); },
       /** Stopping audio silences it without an "end" event, as in core. */
-      stop() {
+      stop(options) {
+        this.lastStopOptions = options;
         this.playing = false;
         this.stopCount++;
         if ( doc.endTimer ) clock.clearTimeout(doc.endTimer);

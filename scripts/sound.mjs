@@ -22,7 +22,9 @@ export const RandomizerSound = Base => class RandomizerSound extends Base {
     // between plays, even in a browser that joined during a gap and hasn't played it yet.
     this.sound ||= this._createSound();
     if ( !this.sound ) return;
-    if ( this.sound.playing ) this.sound.stop({fade: this.fadeDuration});
+    // Only a client whose copy of the sound lags the one that reported its end is still sounding here, so
+    // stop at once: a pending fade-out could otherwise silence the next play if the gap ended mid-fade.
+    if ( this.sound.playing ) this.sound.stop();
     else if ( !this.sound.loaded && !this.sound.failed ) this.sound.load();
   }
 };

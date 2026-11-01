@@ -4,6 +4,13 @@
 }
 
 /* Core shows no time for a sound that isn't sounding ("∞"), so hide it during a gap. */
-.currently-playing .sound.vpr-resting :is(.current, .duration, .timestamp) {
+.currently-playing .sound.vpr-resting .sound-timer {
   visibility: hidden;
+}
+
+/* Core sizes a sound's controls for two icons; make room for the dice so Play/Stop stays on the same line. */
+.sound .sound-controls:has(> [data-action="soundRandomize"]) {
+  flex: 0 0 auto;
+  width: auto;
+  flex-wrap: nowrap;
 }

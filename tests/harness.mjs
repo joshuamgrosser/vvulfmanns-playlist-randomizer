@@ -163,7 +163,21 @@ export class PlaylistSound {
   setFlag(scope, key, value) { return this.update({flags: {[scope]: {[key]: value}}}); }
 
   /** Core creates the audio object lazily; the stand-in only records that it exists. */
-  _createSound() { return {playing: false, stop() { this.playing = false; }}; }
+  _createSound() {
+    const doc = this;
+    return {
+      playing: false,
+      stopCount: 0,
+      /** Stopping audio silences it without an "end" event, as in core. */
+      stop() {
+        this.playing = false;
+        this.stopCount++;
+        if ( doc.endTimer ) clock.clearTimeout(doc.endTimer);
+        doc.endTimer = null;
+        doc.audioLooping = false;
+      }
+    };
+  }
 
   updateSource(changes) { deepMerge(this, expandObject(changes)); }
 
@@ -189,6 +203,7 @@ export class PlaylistSound {
       if ( this.endTimer ) clock.clearTimeout(this.endTimer);
       this.endTimer = null;
       this.audioLooping = false;
+      this.sound.playing = false;
       return;
     }
     if ( this.audioLooping && !this.repeat ) {
@@ -199,6 +214,7 @@ export class PlaylistSound {
     }
     if ( this.endTimer || this.audioLooping ) return;  // already sounding
     this.playCount++;
+    this.sound.playing = true;
     if ( this.repeat ) {
       this.audioLooping = true;
       return;
@@ -209,6 +225,7 @@ export class PlaylistSound {
   #scheduleEnd() {
     this.endTimer = clock.setTimeout(() => {
       this.endTimer = null;
+      this.sound.playing = false;
       this.endCount = (this.endCount ?? 0) + 1;
       this.parent._onSoundEnd(this);   // core: PlaylistSound#_onEnd -> Playlist#_onSoundEnd (owners only)
     }, this.duration);

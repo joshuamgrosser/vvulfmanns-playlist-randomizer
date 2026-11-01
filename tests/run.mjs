@@ -370,6 +370,22 @@ test("a resting sound stays silent but keeps an audio object", async () => {
   assert.ok(bell.sound, "so Currently Playing can list it with a volume slider");
 });
 
+test("entering a gap silences a client whose audio is still playing", async () => {
+  const {playlist, s} = world();
+  const raven = s("raven");
+  await playlist.playSound(raven);
+  assert.equal(raven.sound.playing, true);
+  // Another owner's client reported the end first; this client's audio is still sounding.
+  await playlist._onSoundEnd(raven);
+  assert.equal(resting(raven), true);
+  assert.equal(raven.sound.playing, false, "stopped");
+  assert.equal(raven.sound.stopCount, 1);
+  assert.equal(raven.audible, false);
+  clock.advance(OFTEN);
+  assert.equal(raven.audible, true, "plays again after the gap");
+  assert.equal(raven.playCount, 2);
+});
+
 test("beta flags (dice enabled, playlist armed) are ignored", async () => {
   const {playlist, s} = world({flags: {[MODULE_ID]: {armed: true}}, sounds: [
     {_id: "old", flags: {[MODULE_ID]: {randomize: true, enabled: false, frequency: "often"}}}

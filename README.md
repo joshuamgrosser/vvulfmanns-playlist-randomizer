@@ -14,28 +14,31 @@ Requires Foundry VTT v14.
 
 ## Usage
 
-Click the **dice** icon next to a sound in the Playlists sidebar, or set **Playback** to **Randomize**
-in the sound's edit window. A randomized sound plays, waits a random gap, then plays again until you
-stop it.
+To randomize a sound, click the **dice** icon next to it in the Playlists sidebar. You can also open
+the sound and set **Playback** to **Randomize**.
 
-Choose how often it plays with **Frequency**:
+A randomized sound plays, waits a bit, then plays again. It keeps going until you stop it.
 
-| Frequency | Default gap |
+**Frequency** sets how long it waits between plays:
+
+| Frequency | Wait |
 | --- | --- |
 | Often | 15 to 30 seconds |
 | Sometimes | 30 to 60 seconds |
 | Seldom | 1 to 2 minutes |
 
-- **Play All** or activating a scene starts each randomized sound after a random gap, so they don't
-  all go off at once.
-- A sound never overlaps itself.
-- A GM must be connected for randomized sounds to play.
-- If the module is turned off, randomized sounds play once.
+A few things to know:
+
+- When you start a playlist or a scene, each randomized sound waits before its first play, so they
+  don't all start at once.
+- A sound never plays over itself.
+- A GM has to be logged in for randomized sounds to play.
+- If you turn the module off, randomized sounds just play once.
 
 ## Settings
 
-In **Configure Settings → VVulfmann's Playlist Randomizer**, the GM can change the gap range for each
-Frequency and the Frequency new sounds start with.
+Go to **Configure Settings → VVulfmann's Playlist Randomizer** to change the wait times for each
+Frequency, or the Frequency new sounds start with.
 
 ## License
 

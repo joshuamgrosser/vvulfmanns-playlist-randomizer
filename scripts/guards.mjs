@@ -1,10 +1,12 @@
-import {flagPath, isRandomized, isResting} from "./config.mjs";
+import {defaultFrequency, flagPath, hasFrequency, isRandomized, isResting} from "./config.mjs";
 
 /**
  * Rules applied to every change to a sound, whichever way it is made: the sidebar, the sound window,
  * a macro, another module, or an update sent through the parent playlist.
  *
  * - Repeat and Randomize are mutually exclusive. If a change turns both on, Randomize wins.
+ * - A sound switched to Randomize without a frequency of its own is given the Default Frequency setting,
+ *   so a later change to that setting doesn't move it.
  * - Stopping a sound ends its gap.
  * - Starting a sound plays it now, unless the change itself asks for a gap (Simultaneous Play All).
  * - Switching to Repeat during a gap ends the gap, so the loop starts at once.
@@ -26,6 +28,7 @@ export function applyRules(change, sound) {
   // Repeat and Randomize are exclusive
   if ( randomize === true ) {
     if ( ("repeat" in change) || sound?.repeat ) change.repeat = false;
+    if ( (get("frequency") === undefined) && !hasFrequency(sound) ) set("frequency", defaultFrequency());
   }
   else if ( (change.repeat === true) && isRandomized(sound) ) set("randomize", false);
 
@@ -43,6 +46,7 @@ export function applyRules(change, sound) {
 export function onPreCreatePlaylistSound(sound) {
   const updates = {};
   if ( isRandomized(sound) && sound.repeat ) updates.repeat = false;
+  if ( isRandomized(sound) && !hasFrequency(sound) ) updates[flagPath("frequency")] = defaultFrequency();
   if ( isResting(sound) && !sound.playing ) updates[flagPath("resting")] = false;
   if ( Object.keys(updates).length ) sound.updateSource(updates);
 }

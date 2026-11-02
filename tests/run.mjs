@@ -6,17 +6,18 @@ import assert from "node:assert/strict";
 import {El, Hooks, MODES, Playlist, PlaylistDirectory, PlaylistSound, clock, installGlobals} from "./harness.mjs";
 
 installGlobals();
-Math.random = () => 0.5;   // deterministic gaps: Often = 20 s, Sometimes = 75 s, Seldom = 240 s
+Math.random = () => 0.5;   // deterministic gaps: Often = 22.5 s, Sometimes = 45 s, Seldom = 90 s
 const {scheduler} = await import("../scripts/main.js");
 const config = await import("../scripts/config.mjs");
-const {MODULE_ID, FREQUENCIES, randomDelayMs} = config;
+const {MODULE_ID, FREQUENCIES, MAX_GAP, randomDelayMs} = config;
+const setSetting = (key, value) => game.settings.set(MODULE_ID, key, value);
 
 Hooks.callAll("init");
 
 const SEC = 1000;
 const SOUND_LEN = 5 * SEC;           // every test sound lasts 5 s
-const OFTEN = 20 * SEC;
-const SOMETIMES = 75 * SEC;
+const OFTEN = 22.5 * SEC;
+const SOMETIMES = 45 * SEC;
 const flag = (sound, key) => sound.flags?.[MODULE_ID]?.[key];
 const resting = sound => flag(sound, "resting") === true;
 
@@ -24,6 +25,7 @@ const resting = sound => flag(sound, "resting") === true;
 function world({mode=MODES.SIMULTANEOUS, sounds, flags}={}) {
   clock.reset();
   scheduler.clearAll();
+  game.settings.reset();
   game.playlists.clear();
   game.user.isActiveGM = true;
   const Cls = CONFIG.Playlist.documentClass;
@@ -337,6 +339,136 @@ test("a playlist update that changes mode and a frequency together still redraws
   await playlist.update({mode: MODES.DISABLED, sounds: [{_id: "bell", flags: {[MODULE_ID]: {frequency: "often"}}}]});
   clock.advance(OFTEN);
   assert.equal(bell.playCount, 2, "gap redrawn from Often, not left on Sometimes");
+});
+
+/* ---------------------------------------- */
+/*  Settings                                */
+/* ---------------------------------------- */
+
+test("settings: Default Frequency and six gap sliders, world-scoped on Configure Settings", () => {
+  const ours = [...game.settings.settings.values()].filter(s => s.namespace === MODULE_ID);
+  assert.deepEqual(ours.map(s => s.key), ["defaultFrequency", "oftenMin", "oftenMax", "sometimesMin", "sometimesMax",
+    "seldomMin", "seldomMax"], "registered in display order");
+  for ( const setting of ours ) {
+    assert.equal(setting.scope, "world", `${setting.key} is a world setting`);
+    assert.equal(setting.config, true, `${setting.key} shows on Configure Settings`);
+    assert.ok(setting.name.startsWith("VPR.Settings."), `${setting.key} has a localized name`);
+    assert.ok(setting.hint.startsWith("VPR.Settings."), `${setting.key} has a localized hint`);
+  }
+  const [frequency, ...ranges] = ours;
+  assert.equal(frequency.default, "sometimes");
+  assert.deepEqual(Object.keys(frequency.type.choices), Object.keys(FREQUENCIES));
+  for ( const [i, setting] of ranges.entries() ) {
+    const {min, max, step, integer} = setting.type;
+    // v14 draws a range slider (with a number box) when min, max and step are all set.
+    assert.deepEqual({min, max, step, integer}, {min: 1, max: MAX_GAP, step: 1, integer: true}, `${setting.key} is a slider`);
+    assert.equal(setting.default, Object.values(FREQUENCIES).flat()[i], `${setting.key} defaults to the built-in range`);
+  }
+  assert.equal(MAX_GAP, 180, "three minutes at most");
+});
+
+test("settings: gaps are drawn from the configured ranges", async () => {
+  world();
+  const often = {flags: {[MODULE_ID]: {frequency: "often"}}};
+  await setSetting("oftenMin", 5);
+  await setSetting("oftenMax", 8);
+  assert.equal(randomDelayMs(often, () => 0), 5 * SEC);
+  assert.equal(randomDelayMs(often, () => 0.999999), 8 * SEC);
+  await setSetting("oftenMin", 12);   // saved above the longest gap: the two swap
+  assert.deepEqual(config.frequencyRange("often"), [8, 12]);
+  await setSetting("oftenMax", 9999);  // clamped by the field
+  assert.deepEqual(config.frequencyRange("often"), [12, MAX_GAP]);
+  assert.deepEqual(config.frequencyRange("seldom"), FREQUENCIES.seldom, "other frequencies untouched");
+});
+
+test("settings page: each pair of gap sliders stays in order as the GM edits it", () => {
+  assert.ok(Hooks.events.get("renderSettingsConfig")?.length, "hook registered");
+  // A settings window with range-pickers whose value setter fires a bubbling change, as core's does.
+  const listeners = [];
+  const pickers = new Map();
+  const element = {
+    addEventListener: (type, fn) => listeners.push([type, fn]),
+    querySelector: sel => pickers.get(sel.match(/name="(.+)"/)[1]) ?? null
+  };
+  const picker = (key, initial) => {
+    const name = `${MODULE_ID}.${key}`;
+    let value = initial;
+    const p = {name, get value() { return String(value); }, set value(v) { value = Number(v); fire(p); }};
+    pickers.set(name, p);
+    return p;
+  };
+  const fire = target => { for ( const [type, fn] of listeners ) if ( type === "change" ) fn({target}); };
+  const oftenMin = picker("oftenMin", 15);
+  const oftenMax = picker("oftenMax", 30);
+  const seldomMin = picker("seldomMin", 60);
+  const seldomMax = picker("seldomMax", 120);
+  Hooks.callAll("renderSettingsConfig", {}, element);
+  Hooks.callAll("renderSettingsConfig", {}, element);   // a re-render doesn't link it twice
+  assert.equal(listeners.length, 1);
+
+  oftenMin.value = 40;
+  assert.equal(oftenMax.value, "40", "a shortest gap raised past the longest pushes it up");
+  oftenMax.value = 3;
+  assert.equal(oftenMin.value, "3", "a longest gap lowered past the shortest pulls it down");
+  oftenMax.value = 10;
+  assert.equal(oftenMin.value, "3", "in order: the partner stays put");
+  assert.deepEqual([seldomMin.value, seldomMax.value], ["60", "120"], "other frequencies untouched");
+  fire({name: "core.other", value: "1"});   // unrelated settings are ignored
+});
+
+test("settings: a changed range redraws the gaps waiting at that frequency, and only those", async () => {
+  const {playlist, s} = world();
+  await playlist.playAll();   // bell (Sometimes, by default) and raven (Often) both wait
+  await setSetting("oftenMin", 2);
+  await setSetting("oftenMax", 2);
+  clock.advance(2 * SEC);
+  assert.equal(s("raven").audible, true, "raven's gap was redrawn from the new Often range");
+  assert.equal(s("bell").audible, false);
+  clock.advance(SOMETIMES - (2 * SEC));
+  assert.equal(s("bell").audible, true, "bell kept its Sometimes gap");
+});
+
+test("settings: a sound switched to Randomize takes the Default Frequency, and keeps it", async () => {
+  const {playlist, s} = world();
+  await setSetting("defaultFrequency", "seldom");
+  await s("slam").setFlag(MODULE_ID, "randomize", true);
+  assert.equal(flag(s("slam"), "frequency"), "seldom", "stamped on the sound");
+  await setSetting("defaultFrequency", "often");
+  assert.equal(config.frequencyOf(s("slam")), "seldom", "a later default doesn't move it");
+  await playlist.update({sounds: [{_id: "loop", flags: {[MODULE_ID]: {randomize: true}}}]});
+  assert.equal(flag(s("loop"), "frequency"), "often", "same through a playlist update");
+  await s("raven").setFlag(MODULE_ID, "randomize", false);
+  await s("raven").setFlag(MODULE_ID, "randomize", true);
+  assert.equal(flag(s("raven"), "frequency"), "often", "its own frequency stays");
+  await playlist.update({sounds: [{_id: "loop", flags: {[MODULE_ID]: {randomize: false}}}]});
+  await playlist.update({sounds: [{_id: "loop", flags: {[MODULE_ID]: {randomize: true, frequency: "sometimes"}}}]});
+  assert.equal(flag(s("loop"), "frequency"), "sometimes", "a frequency in the same change wins");
+  const created = new PlaylistSound({_id: "new", flags: {[MODULE_ID]: {randomize: true}}}, playlist);
+  Hooks.call("preCreatePlaylistSound", created, {}, {}, "user");
+  assert.equal(flag(created, "frequency"), "often", "created randomized: stamped too");
+  const plain = new PlaylistSound({_id: "plain"}, playlist);
+  Hooks.call("preCreatePlaylistSound", plain, {}, {}, "user");
+  assert.equal(flag(plain, "frequency"), undefined, "a one-shot isn't stamped");
+});
+
+test("settings: a changed default redraws only sounds with no frequency of their own", async () => {
+  const {playlist, s} = world();
+  await playlist.playAll();   // bell has no frequency flag (randomized before v0.2.0); raven is Often
+  await setSetting("defaultFrequency", "often");
+  assert.equal(config.frequencyOf(s("bell")), "often");
+  clock.advance(OFTEN);
+  assert.equal(s("bell").audible, true, "bell's gap was redrawn from Often");
+  assert.equal(s("raven").playCount, 1, "raven's gap ran as drawn");
+});
+
+test("settings: only the active GM redraws gaps", async () => {
+  const {playlist} = world();
+  await playlist.playAll();
+  const before = [...scheduler.timers.values()].map(t => t.handle);
+  game.user.isActiveGM = false;
+  await setSetting("oftenMax", 11);
+  game.user.isActiveGM = true;
+  assert.deepEqual([...scheduler.timers.values()].map(t => t.handle), before);
 });
 
 /* ---------------------------------------- */

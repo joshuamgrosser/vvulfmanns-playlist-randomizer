@@ -15,6 +15,30 @@
       "often": "Often",
       "sometimes": "Sometimes",
       "seldom": "Seldom"
+    },
+    "Settings": {
+      "DefaultFrequency": {
+        "Name": "Default Frequency",
+        "Hint": "The Frequency a sound gets when it's first switched to Randomize. Sounds that already have a Frequency keep theirs."
+      },
+      "Range": {
+        "often": {
+          "min": "Often: Shortest Gap",
+          "max": "Often: Longest Gap"
+        },
+        "sometimes": {
+          "min": "Sometimes: Shortest Gap",
+          "max": "Sometimes: Longest Gap"
+        },
+        "seldom": {
+          "min": "Seldom: Shortest Gap",
+          "max": "Seldom: Longest Gap"
+        },
+        "Hint": {
+          "min": "Seconds of silence, at least, between plays at this Frequency (1 to 180).",
+          "max": "Seconds of silence, at most, between plays at this Frequency (1 to 180)."
+        }
+      }
     }
   }
 }

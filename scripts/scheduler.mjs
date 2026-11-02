@@ -109,6 +109,20 @@ export class Scheduler {
     }
   }
 
+  /**
+   * Redraw the pending gaps of the sounds a settings change affects, from their new range.
+   * @param {(sound: PlaylistSound) => boolean} affected
+   */
+  redraw(affected) {
+    if ( !this.active ) return;
+    for ( const [uuid, {playlistId, soundId}] of [...this.timers] ) {
+      const sound = game.playlists.get(playlistId)?.sounds.get(soundId);
+      if ( !sound || !affected(sound) ) continue;
+      this.cancel(uuid);
+      this.check(sound);
+    }
+  }
+
   /** Cancel every pending gap. */
   clearAll() {
     for ( const uuid of [...this.timers.keys()] ) this.cancel(uuid);

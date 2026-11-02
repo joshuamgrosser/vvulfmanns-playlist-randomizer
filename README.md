@@ -2,11 +2,6 @@
 
 Loop playlist sounds at random intervals! This module adds an additional Randomize option to the default Foundry playlist sound options. There are three levels of randomization to choose from: Often, Sometimes, and Seldom, all of which are configurable in the module settings.
 
-Randomize is Repeat with a random silent gap between plays: a church bell, a raven, distant thunder
-or creaking timbers that drop in now and then instead of looping nonstop. It works in every playlist
-mode and through Foundry's own controls. Press Play and it starts, press Stop and it ends, and its
-button shows Stop the whole time, just like a repeating sound.
-
 ## How to use it
 
 In the Playlists sidebar, every sound has a **dice** icon right beside its **repeat** icon. At most

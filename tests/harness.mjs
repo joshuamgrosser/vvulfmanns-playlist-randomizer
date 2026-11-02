@@ -474,12 +474,73 @@ const fields = {
 /*  Globals                                  */
 /* ---------------------------------------- */
 
+/* ---------------------------------------- */
+/*  Settings                                */
+/* ---------------------------------------- */
+
+/** foundry.data.fields, reduced to the options and checks the module's settings use. */
+class DataField {
+  constructor(options={}) { Object.assign(this, options); }
+  getInitialValue() { return this.initial; }
+}
+
+class NumberField extends DataField {
+  /** Like core's _cleanType: cast, then snap to the step and clamp to [min, max]. */
+  clean(value) {
+    value = Number(value);
+    if ( this.integer || Number.isFinite(this.step) ) value = Math.round(value);
+    if ( Number.isFinite(this.min) ) value = Math.max(value, this.min);
+    if ( Number.isFinite(this.max) ) value = Math.min(value, this.max);
+    return value;
+  }
+  validate(value) {
+    if ( !Number.isFinite(value) ) throw new Error("must be a finite number");
+  }
+}
+
+class StringField extends DataField {
+  clean(value) { return String(value); }
+  validate(value) {
+    if ( this.choices && !(value in this.choices) ) throw new Error(`${value} is not a valid choice`);
+  }
+}
+
+/** game.settings, reduced: world values kept in memory, onChange fired on set as core's Setting document does. */
+export class ClientSettings {
+  settings = new Map();
+  values = new Map();
+  register(namespace, key, data) {
+    if ( !(data.type instanceof DataField) ) throw new Error(`Setting ${namespace}.${key} type must be a DataField`);
+    data.default ??= data.type.getInitialValue();
+    this.settings.set(`${namespace}.${key}`, {...data, namespace, key});
+  }
+  get(namespace, key) {
+    const id = `${namespace}.${key}`;
+    const setting = this.settings.get(id);
+    if ( !setting ) throw new Error(`"${id}" is not a registered game setting`);
+    return this.values.has(id) ? this.values.get(id) : setting.default;
+  }
+  async set(namespace, key, value) {
+    const id = `${namespace}.${key}`;
+    const setting = this.settings.get(id);
+    if ( !setting ) throw new Error(`"${id}" is not a registered game setting`);
+    value = setting.type.clean(value);
+    setting.type.validate(value);
+    this.values.set(id, value);
+    setting.onChange?.(value);
+    return value;
+  }
+  /** Back to every default, without firing onChange. */
+  reset() { this.values.clear(); }
+}
+
 export function installGlobals() {
   globalThis.realSetTimeout ??= globalThis.setTimeout;
   globalThis.setTimeout = clock.setTimeout;
   globalThis.clearTimeout = clock.clearTimeout;
   globalThis.CONST = {PLAYLIST_MODES: MODES};
-  globalThis.foundry = {utils: {getProperty, hasProperty, setProperty, expandObject}, applications: {fields}};
+  globalThis.foundry = {utils: {getProperty, hasProperty, setProperty, expandObject}, applications: {fields},
+    data: {fields: {DataField, NumberField, StringField}}};
   globalThis.Hooks = Hooks;
   globalThis.document = {createElement: tag => new El(tag)};
   globalThis.CONFIG = {Playlist: {documentClass: Playlist}, PlaylistSound: {documentClass: PlaylistSound},
@@ -489,6 +550,7 @@ export function installGlobals() {
     user: {isGM: true, isActiveGM: true},
     playlists,
     audio: {locked: false},
+    settings: new ClientSettings(),
     i18n: {localize: k => k}
   };
 }

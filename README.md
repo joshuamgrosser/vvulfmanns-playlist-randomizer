@@ -28,7 +28,29 @@ Randomize:
 | Sometimes (default) | 30 seconds to 2 minutes |
 | Seldom | 2 to 6 minutes |
 
+These are the default ranges. You can change them in **Settings** (see below).
+
 A sound keeps its Frequency when you switch Randomize off, so switching it back on restores it.
+
+## Settings
+
+In **Game Settings → Configure Settings → VVulfmann's Playlist Randomizer** (Gamemaster only, for the
+whole world):
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| Default Frequency | Sometimes | The Frequency a sound gets when it's first switched to Randomize. |
+| Often: Shortest / Longest Gap | 10 s / 30 s | The range a gap is drawn from at Often. |
+| Sometimes: Shortest / Longest Gap | 30 s / 120 s | The same for Sometimes. |
+| Seldom: Shortest / Longest Gap | 120 s / 360 s | The same for Seldom. |
+
+- Each gap is a slider from 1 second to 10 minutes (600 s).
+- If a shortest gap is set above its longest, the two swap.
+- Changes take effect at once, with no reload: gaps already waiting at that Frequency are redrawn from
+  the new range.
+- A sound saves the Default Frequency as its own when it's switched to Randomize, so changing the
+  default later doesn't move sounds you've already set up. Sounds randomized before v0.2.0 without
+  a Frequency of their own follow the default.
 
 ## Behaviour
 
@@ -78,7 +100,9 @@ Currently Playing, playlist state and Sequential track-holding all work unchange
   is started, stopped or switched to Repeat.
 - An active-GM scheduler times each gap, then clears `resting` so core plays the sound everywhere.
 
-Sound settings live in the sound's flags: `randomize`, `frequency` and `resting`.
+Sound settings live in the sound's flags: `randomize`, `frequency` and `resting`. The world settings
+(`defaultFrequency`, and `oftenMin`, `oftenMax` and so on for each Frequency) are registered with
+`game.settings.register` in the init hook as v14 data fields, so Configure Settings draws them itself.
 
 ## Development
 

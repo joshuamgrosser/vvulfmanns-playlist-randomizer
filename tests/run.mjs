@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import {El, Hooks, MODES, Playlist, PlaylistDirectory, PlaylistSound, clock, installGlobals} from "./harness.mjs";
 
 installGlobals();
-Math.random = () => 0.5;   // deterministic gaps: Often = 20 s, Sometimes = 75 s, Seldom = 240 s
+Math.random = () => 0.5;   // deterministic gaps: Often = 10 s, Sometimes = 22.5 s, Seldom = 90 s
 const {scheduler} = await import("../scripts/main.js");
 const config = await import("../scripts/config.mjs");
 const {MODULE_ID, FREQUENCIES, MAX_GAP, randomDelayMs} = config;
@@ -16,8 +16,8 @@ Hooks.callAll("init");
 
 const SEC = 1000;
 const SOUND_LEN = 5 * SEC;           // every test sound lasts 5 s
-const OFTEN = 20 * SEC;
-const SOMETIMES = 75 * SEC;
+const OFTEN = 10 * SEC;
+const SOMETIMES = 22.5 * SEC;
 const flag = (sound, key) => sound.flags?.[MODULE_ID]?.[key];
 const resting = sound => flag(sound, "resting") === true;
 
@@ -70,8 +70,8 @@ test("random gaps stay inside each frequency's range", () => {
     assert.equal(randomDelayMs(sound, () => 0), min * SEC);
     assert.ok(randomDelayMs(sound, () => 0.999999) <= max * SEC);
   }
-  assert.equal(randomDelayMs({flags: {}}, () => 0), 30 * SEC, "default is Sometimes");
-  assert.equal(randomDelayMs({flags: {[MODULE_ID]: {frequency: "bogus"}}}, () => 0), 30 * SEC);
+  assert.equal(randomDelayMs({flags: {}}, () => 0), 15 * SEC, "default is Sometimes");
+  assert.equal(randomDelayMs({flags: {[MODULE_ID]: {frequency: "bogus"}}}, () => 0), 15 * SEC);
 });
 
 /* ---------------------------------------- */
@@ -362,7 +362,7 @@ test("settings: Default Frequency and six gap sliders, world-scoped on Configure
     const {min, max, step, integer} = setting.type;
     // v14 draws a range slider (with a number box) when min, max and step are all set.
     assert.deepEqual({min, max, step, integer}, {min: 1, max: MAX_GAP, step: 1, integer: true}, `${setting.key} is a slider`);
-    assert.equal(setting.default, Object.values(FREQUENCIES).flat()[i], `${setting.key} defaults to the v0.1 range`);
+    assert.equal(setting.default, Object.values(FREQUENCIES).flat()[i], `${setting.key} defaults to the built-in range`);
   }
   assert.equal(MAX_GAP, 600, "ten minutes at most");
 });

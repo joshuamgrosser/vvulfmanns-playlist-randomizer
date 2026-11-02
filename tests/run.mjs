@@ -381,6 +381,41 @@ test("settings: gaps are drawn from the configured ranges", async () => {
   assert.deepEqual(config.frequencyRange("seldom"), FREQUENCIES.seldom, "other frequencies untouched");
 });
 
+test("settings page: each pair of gap sliders stays in order as the GM edits it", () => {
+  assert.ok(Hooks.events.get("renderSettingsConfig")?.length, "hook registered");
+  // A settings window with range-pickers whose value setter fires a bubbling change, as core's does.
+  const listeners = [];
+  const pickers = new Map();
+  const element = {
+    addEventListener: (type, fn) => listeners.push([type, fn]),
+    querySelector: sel => pickers.get(sel.match(/name="(.+)"/)[1]) ?? null
+  };
+  const picker = (key, initial) => {
+    const name = `${MODULE_ID}.${key}`;
+    let value = initial;
+    const p = {name, get value() { return String(value); }, set value(v) { value = Number(v); fire(p); }};
+    pickers.set(name, p);
+    return p;
+  };
+  const fire = target => { for ( const [type, fn] of listeners ) if ( type === "change" ) fn({target}); };
+  const oftenMin = picker("oftenMin", 5);
+  const oftenMax = picker("oftenMax", 15);
+  const seldomMin = picker("seldomMin", 60);
+  const seldomMax = picker("seldomMax", 120);
+  Hooks.callAll("renderSettingsConfig", {}, element);
+  Hooks.callAll("renderSettingsConfig", {}, element);   // a re-render doesn't link it twice
+  assert.equal(listeners.length, 1);
+
+  oftenMin.value = 40;
+  assert.equal(oftenMax.value, "40", "a shortest gap raised past the longest pushes it up");
+  oftenMax.value = 3;
+  assert.equal(oftenMin.value, "3", "a longest gap lowered past the shortest pulls it down");
+  oftenMax.value = 10;
+  assert.equal(oftenMin.value, "3", "in order: the partner stays put");
+  assert.deepEqual([seldomMin.value, seldomMax.value], ["60", "120"], "other frequencies untouched");
+  fire({name: "core.other", value: "1"});   // unrelated settings are ignored
+});
+
 test("settings: a changed range redraws the gaps waiting at that frequency, and only those", async () => {
   const {playlist, s} = world();
   await playlist.playAll();   // bell (Sometimes, by default) and raven (Often) both wait

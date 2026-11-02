@@ -9,6 +9,7 @@ import {frequencyOf, hasFrequency} from "./config.mjs";
 import {RandomizerPlaylist} from "./playlist.mjs";
 import {Scheduler} from "./scheduler.mjs";
 import {registerSettings} from "./settings.mjs";
+import {onRenderSettingsConfig} from "./settings-config.mjs";
 import {RandomizerSound} from "./sound.mjs";
 import {onRenderPlaylistSoundConfig} from "./sound-config.mjs";
 
@@ -30,5 +31,6 @@ Hooks.once("init", () => {
   Hooks.on("preUpdatePlaylistSound", onPreUpdatePlaylistSound);
   Hooks.on("preUpdatePlaylist", onPreUpdatePlaylist);
   Hooks.on("renderPlaylistSoundConfig", onRenderPlaylistSoundConfig);
+  Hooks.on("renderSettingsConfig", onRenderSettingsConfig);
   scheduler.registerHooks();
 });

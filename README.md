@@ -45,7 +45,8 @@ whole world):
 | Seldom: Shortest / Longest Gap | 60 s / 120 s | The same for Seldom. |
 
 - Each gap is a slider from 1 second to 3 minutes (180 s).
-- If a shortest gap is set above its longest, the two swap.
+- Each pair of sliders stays in order: drag a shortest gap past its longest and the longest moves up
+  with it, and the other way round.
 - Changes take effect at once, with no reload: gaps already waiting at that Frequency are redrawn from
   the new range.
 - A sound saves the Default Frequency as its own when it's switched to Randomize, so changing the
@@ -96,6 +97,7 @@ Currently Playing, playlist state and Sequential track-holding all work unchange
 - `CONFIG.ui.playlists` adds the dice button (a copy of core's repeat button) and its
   `soundRandomize` action, and marks resting rows.
 - A `renderPlaylistSoundConfig` hook swaps the Repeat checkbox for the Playback row and Frequency.
+- A `renderSettingsConfig` hook keeps each pair of gap sliders in order while they're edited.
 - `preCreate`/`preUpdate` hooks keep Repeat and Randomize exclusive and clear `resting` when a sound
   is started, stopped or switched to Repeat.
 - An active-GM scheduler times each gap, then clears `resting` so core plays the sound everywhere.

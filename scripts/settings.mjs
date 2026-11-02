@@ -5,8 +5,9 @@ import {DEFAULT_FREQUENCY, DEFAULT_FREQUENCY_SETTING, FREQUENCIES, MAX_GAP, MODU
  * - Default Frequency: the frequency a sound is given when it's first switched to Randomize.
  * - Shortest and longest gap, in seconds, for each frequency.
  *
- * Settings are saved one at a time, so a shortest gap above its longest can't be refused as a pair.
- * Readers treat the smaller of the two as the shortest (see config.mjs frequencyRange).
+ * On the settings page each pair of sliders is kept in order as the GM edits it (see settings-config.mjs).
+ * Settings are still saved one at a time, so a macro could store a shortest gap above its longest; readers
+ * treat the smaller of the two as the shortest (see config.mjs frequencyRange).
  */
 
 /**

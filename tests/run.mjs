@@ -590,6 +590,46 @@ test("deleting a sound or playlist cancels its gap", async () => {
   assert.equal(scheduler.timers.size, 0);
 });
 
+test("a compendium copy of a playlist never touches the world's gaps", async () => {
+  const {playlist, s} = world();
+  await playlist.playAll();
+  assert.equal(scheduler.timers.size, 2);
+  // Same IDs, as when a playlist is imported from a compendium, but not the copy in game.playlists
+  const Cls = CONFIG.Playlist.documentClass;
+  const packCopy = new Cls({_id: "pl1", mode: MODES.SIMULTANEOUS, sounds: [
+    {_id: "bell", playing: true, flags: {[MODULE_ID]: {randomize: true, resting: true}}}
+  ]});
+  packCopy.pack = "world.sounds";
+  const packBell = packCopy.sounds.get("bell");
+  packBell.uuid = `Compendium.world.sounds.${packBell.uuid}`;
+  const before = [...scheduler.timers.values()].map(t => t.handle);
+  Hooks.callAll("updatePlaylistSound", packBell, {name: "Renamed"});
+  assert.equal(scheduler.timers.has(packBell.uuid), false, "editing a compendium sound starts no timer");
+  assert.equal(scheduler.timers.size, 2);
+  Hooks.callAll("deletePlaylist", packCopy);
+  assert.deepEqual([...scheduler.timers.values()].map(t => t.handle), before, "world gaps untouched");
+  clock.advance(OFTEN);
+  assert.equal(s("raven").audible, true, "the world playlist keeps going");
+});
+
+test("no timers are left behind after many plays, stops and deletes", async () => {
+  const {playlist, s} = world();
+  for ( let i = 0; i < 25; i++ ) {
+    await playlist.playAll();
+    clock.advance(OFTEN + SOUND_LEN);
+    await playlist.stopAll();
+    assert.equal(scheduler.timers.size, 0, `round ${i}: no gaps pending after Stop`);
+  }
+  await playlist.playAll();
+  await setSetting("oftenMin", 10);
+  await setSetting("sometimesMax", 90);
+  assert.equal(scheduler.timers.size, 2, "settings changes redraw, they don't add");
+  const handles = [...scheduler.timers.values()].map(t => t.handle);
+  Hooks.callAll("deletePlaylist", playlist);
+  assert.equal(scheduler.timers.size, 0);
+  assert.ok(handles.every(h => !clock.queue.has(h)), "the browser's timers were cleared too, not just forgotten");
+});
+
 /* ---------------------------------------- */
 /*  Sidebar                                  */
 /* ---------------------------------------- */

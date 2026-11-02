@@ -1,6 +1,6 @@
 # VVulfmann's Playlist Randomizer
 
-A small Foundry VTT v14 module that adds **Randomize** beside **Repeat** on playlist sounds.
+Loop playlist sounds at random intervals! This module adds an additional Randomize option to the default Foundry playlist sound options. There are three levels of randomization to choose from: Often, Sometimes, and Seldom, all of which are configurable in the module settings.
 
 Randomize is Repeat with a random silent gap between plays: a church bell, a raven, distant thunder
 or creaking timbers that drop in now and then instead of looping nonstop. It works in every playlist

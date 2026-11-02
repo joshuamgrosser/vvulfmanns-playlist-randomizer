@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import {El, Hooks, MODES, Playlist, PlaylistDirectory, PlaylistSound, clock, installGlobals} from "./harness.mjs";
 
 installGlobals();
-Math.random = () => 0.5;   // deterministic gaps: Often = 10 s, Sometimes = 22.5 s, Seldom = 90 s
+Math.random = () => 0.5;   // deterministic gaps: Often = 22.5 s, Sometimes = 45 s, Seldom = 90 s
 const {scheduler} = await import("../scripts/main.js");
 const config = await import("../scripts/config.mjs");
 const {MODULE_ID, FREQUENCIES, MAX_GAP, randomDelayMs} = config;
@@ -16,8 +16,8 @@ Hooks.callAll("init");
 
 const SEC = 1000;
 const SOUND_LEN = 5 * SEC;           // every test sound lasts 5 s
-const OFTEN = 10 * SEC;
-const SOMETIMES = 22.5 * SEC;
+const OFTEN = 22.5 * SEC;
+const SOMETIMES = 45 * SEC;
 const flag = (sound, key) => sound.flags?.[MODULE_ID]?.[key];
 const resting = sound => flag(sound, "resting") === true;
 
@@ -70,8 +70,8 @@ test("random gaps stay inside each frequency's range", () => {
     assert.equal(randomDelayMs(sound, () => 0), min * SEC);
     assert.ok(randomDelayMs(sound, () => 0.999999) <= max * SEC);
   }
-  assert.equal(randomDelayMs({flags: {}}, () => 0), 15 * SEC, "default is Sometimes");
-  assert.equal(randomDelayMs({flags: {[MODULE_ID]: {frequency: "bogus"}}}, () => 0), 15 * SEC);
+  assert.equal(randomDelayMs({flags: {}}, () => 0), 30 * SEC, "default is Sometimes");
+  assert.equal(randomDelayMs({flags: {[MODULE_ID]: {frequency: "bogus"}}}, () => 0), 30 * SEC);
 });
 
 /* ---------------------------------------- */
@@ -398,8 +398,8 @@ test("settings page: each pair of gap sliders stays in order as the GM edits it"
     return p;
   };
   const fire = target => { for ( const [type, fn] of listeners ) if ( type === "change" ) fn({target}); };
-  const oftenMin = picker("oftenMin", 5);
-  const oftenMax = picker("oftenMax", 15);
+  const oftenMin = picker("oftenMin", 15);
+  const oftenMax = picker("oftenMax", 30);
   const seldomMin = picker("seldomMin", 60);
   const seldomMax = picker("seldomMax", 120);
   Hooks.callAll("renderSettingsConfig", {}, element);

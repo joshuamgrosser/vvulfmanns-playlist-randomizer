@@ -7,8 +7,8 @@ export const MODULE_ID = "vvulfmanns-playlist-randomizer";
 
 /** Gap between plays, in seconds: [shortest, longest]. These are the settings' defaults; see frequencyRange. */
 export const FREQUENCIES = Object.freeze({
-  often: [5, 15],
-  sometimes: [15, 30],
+  often: [15, 30],
+  sometimes: [30, 60],
   seldom: [60, 120]
 });
 

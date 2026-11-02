@@ -24,8 +24,8 @@ Randomize:
 
 | Frequency | Gap between plays |
 | --- | --- |
-| Often | 5 to 15 seconds |
-| Sometimes (default) | 15 to 30 seconds |
+| Often | 15 to 30 seconds |
+| Sometimes (default) | 30 to 60 seconds |
 | Seldom | 1 to 2 minutes |
 
 These are the default ranges. You can change them in **Settings** (see below).
@@ -40,8 +40,8 @@ whole world):
 | Setting | Default | What it does |
 | --- | --- | --- |
 | Default Frequency | Sometimes | The Frequency a sound gets when it's first switched to Randomize. |
-| Often: Shortest / Longest Gap | 5 s / 15 s | The range a gap is drawn from at Often. |
-| Sometimes: Shortest / Longest Gap | 15 s / 30 s | The same for Sometimes. |
+| Often: Shortest / Longest Gap | 15 s / 30 s | The range a gap is drawn from at Often. |
+| Sometimes: Shortest / Longest Gap | 30 s / 60 s | The same for Sometimes. |
 | Seldom: Shortest / Longest Gap | 60 s / 120 s | The same for Seldom. |
 
 - Each gap is a slider from 1 second to 3 minutes (180 s).

@@ -600,8 +600,12 @@ test("a compendium copy of a playlist never touches the world's gaps", async () 
     {_id: "bell", playing: true, flags: {[MODULE_ID]: {randomize: true, resting: true}}}
   ]});
   packCopy.pack = "world.sounds";
+  const packBell = packCopy.sounds.get("bell");
+  packBell.uuid = `Compendium.world.sounds.${packBell.uuid}`;
   const before = [...scheduler.timers.values()].map(t => t.handle);
-  Hooks.callAll("updatePlaylistSound", packCopy.sounds.get("bell"), {name: "Renamed"});
+  Hooks.callAll("updatePlaylistSound", packBell, {name: "Renamed"});
+  assert.equal(scheduler.timers.has(packBell.uuid), false, "editing a compendium sound starts no timer");
+  assert.equal(scheduler.timers.size, 2);
   Hooks.callAll("deletePlaylist", packCopy);
   assert.deepEqual([...scheduler.timers.values()].map(t => t.handle), before, "world gaps untouched");
   clock.advance(OFTEN);

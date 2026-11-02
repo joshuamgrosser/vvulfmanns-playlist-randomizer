@@ -4,6 +4,12 @@ import {flagPath, isRandomized, isWaiting, randomDelayMs} from "./config.mjs";
 const touches = (change, key) => foundry.utils.hasProperty(change ?? {}, flagPath(key));
 
 /**
+ * Is this the world's own copy of the sound? Compendium sounds fire the same hooks, and a playlist imported
+ * from a compendium can share its IDs, so only the copy in game.playlists keeps time.
+ */
+const isWorldSound = sound => game.playlists?.get(sound?.parent?.id)?.sounds.get(sound?.id) === sound;
+
+/**
  * Times the gaps between plays. Runs only in the active GM's browser, so plays never double up.
  *
  * It looks at a sound's state, not at what just happened to it:
@@ -57,6 +63,7 @@ export class Scheduler {
    */
   check(sound, change) {
     if ( !this.active || !sound?.uuid ) return;
+    if ( !isWorldSound(sound) ) return;
     if ( !isWaiting(sound) ) return this.cancel(sound.uuid);
     if ( !isRandomized(sound) ) {
       // Randomize was switched off during a gap: end it like a finished track, once.
@@ -87,11 +94,13 @@ export class Scheduler {
 
   /** Draw a gap for a sound, unless one is already pending. */
   schedule(sound) {
-    if ( this.timers.has(sound.uuid) ) return;
+    const uuid = sound.uuid;
+    if ( this.timers.has(uuid) ) return;
     const playlistId = sound.parent.id;
     const soundId = sound.id;
-    const handle = this.#setTimeout(() => this.fire(sound.uuid, playlistId, soundId), randomDelayMs(sound, this.#random));
-    this.timers.set(sound.uuid, {handle, playlistId, soundId});
+    // The callback holds only IDs, never the sound, so a pending gap doesn't keep a stale document alive.
+    const handle = this.#setTimeout(() => this.fire(uuid, playlistId, soundId), randomDelayMs(sound, this.#random));
+    this.timers.set(uuid, {handle, playlistId, soundId});
   }
 
   /** Cancel a sound's pending gap. */
@@ -155,7 +164,10 @@ export class Scheduler {
     Hooks.on("updatePlaylistSound", (sound, changed) => this.check(sound, changed));
     Hooks.on("createPlaylistSound", sound => this.check(sound));
     Hooks.on("deletePlaylistSound", sound => this.cancel(sound.uuid));
-    Hooks.on("deletePlaylist", playlist => this.cancelPlaylist(playlist.id));
+    // A compendium playlist can share its ID with a world one, so deleting it mustn't cancel the world's gaps.
+    Hooks.on("deletePlaylist", playlist => {
+      if ( !playlist.pack ) this.cancelPlaylist(playlist.id);
+    });
     Hooks.on("userConnected", () => this.refresh());
     Hooks.once("ready", () => this.refresh());
   }

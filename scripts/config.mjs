@@ -14,8 +14,8 @@ export const FREQUENCIES = Object.freeze({
 
 export const DEFAULT_FREQUENCY = "sometimes";
 
-/** The longest gap the range settings allow, in seconds (5 minutes). */
-export const MAX_GAP = 300;
+/** The longest gap the range settings allow, in seconds (3 minutes). */
+export const MAX_GAP = 180;
 
 /** The world setting that holds the frequency a sound gets when it's first switched to Randomize. */
 export const DEFAULT_FREQUENCY_SETTING = "defaultFrequency";

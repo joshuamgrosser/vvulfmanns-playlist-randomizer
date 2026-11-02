@@ -44,7 +44,7 @@ whole world):
 | Sometimes: Shortest / Longest Gap | 15 s / 30 s | The same for Sometimes. |
 | Seldom: Shortest / Longest Gap | 60 s / 120 s | The same for Seldom. |
 
-- Each gap is a slider from 1 second to 10 minutes (600 s).
+- Each gap is a slider from 1 second to 5 minutes (300 s).
 - If a shortest gap is set above its longest, the two swap.
 - Changes take effect at once, with no reload: gaps already waiting at that Frequency are redrawn from
   the new range.

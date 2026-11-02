@@ -35,8 +35,8 @@
           "max": "Seldom: Longest Gap"
         },
         "Hint": {
-          "min": "Seconds of silence, at least, between plays at this Frequency (1 to 600).",
-          "max": "Seconds of silence, at most, between plays at this Frequency (1 to 600). If it's below the shortest gap, the two swap."
+          "min": "Seconds of silence, at least, between plays at this Frequency (1 to 300).",
+          "max": "Seconds of silence, at most, between plays at this Frequency (1 to 300). If it's below the shortest gap, the two swap."
         }
       }
     }

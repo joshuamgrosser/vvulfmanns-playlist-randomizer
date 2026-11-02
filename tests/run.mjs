@@ -364,7 +364,7 @@ test("settings: Default Frequency and six gap sliders, world-scoped on Configure
     assert.deepEqual({min, max, step, integer}, {min: 1, max: MAX_GAP, step: 1, integer: true}, `${setting.key} is a slider`);
     assert.equal(setting.default, Object.values(FREQUENCIES).flat()[i], `${setting.key} defaults to the built-in range`);
   }
-  assert.equal(MAX_GAP, 600, "ten minutes at most");
+  assert.equal(MAX_GAP, 300, "five minutes at most");
 });
 
 test("settings: gaps are drawn from the configured ranges", async () => {
